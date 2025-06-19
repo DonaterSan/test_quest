@@ -18,7 +18,7 @@ class MainApp extends StatelessWidget {
       routes: {
         '/': (_) => const LoginScreen(),
         '/confirm': (_) => const ConfirmCodeScreen(),
-        '/home': (_) => const HomeScreen(),
+        '/home': (_) => const HomeScreen()
       },
     );
   }

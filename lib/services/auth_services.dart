@@ -22,7 +22,7 @@ class AuthService {
       'email': email,
       'code': code,
     });
-
+ 
     if (response.statusCode == 200) {
       final data = response.data;
       final jwt = data['jwt'];
