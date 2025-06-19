@@ -84,7 +84,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         const SizedBox(height: 4),
                         const Text(
-                          'Welcome back, Rohit thakur',
+                          'Welcome back, Dmitry Kruts',
                           style: TextStyle(fontSize: 14, color: Colors.black54),
                         ),
                       ],

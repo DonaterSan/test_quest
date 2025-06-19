@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../services/auth_services.dart';
+import '../providers/auth_provider.dart';
 
-class ConfirmCodeScreen extends StatefulWidget {
+class ConfirmCodeScreen extends ConsumerStatefulWidget {
   const ConfirmCodeScreen({super.key});
 
   @override
-  State<ConfirmCodeScreen> createState() => _ConfirmCodeScreenState();
+  ConsumerState<ConfirmCodeScreen> createState() => _ConfirmCodeScreenState();
 }
 
-class _ConfirmCodeScreenState extends State<ConfirmCodeScreen> {
+class _ConfirmCodeScreenState extends ConsumerState<ConfirmCodeScreen> {
   final _codeController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   final _authService = AuthService();
@@ -19,7 +21,12 @@ class _ConfirmCodeScreenState extends State<ConfirmCodeScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    email = ModalRoute.of(context)!.settings.arguments as String;
+    final args = ModalRoute.of(context)?.settings.arguments;
+    if (args is String) {
+      email = args;
+    } else {
+      email = '';
+    }
   }
 
   void _submitCode() async {
@@ -30,18 +37,22 @@ class _ConfirmCodeScreenState extends State<ConfirmCodeScreen> {
     setState(() => _isLoading = true);
 
     try {
-      await _authService.loginWithCode(email, code);
+      final success = await _authService.loginWithCode(email, code);
 
       if (!mounted) return;
 
-      final userId = await _authService.getUserId();
+      if (success) {
+        final userId = await _authService.getUserId();
+        debugPrint('User ID: $userId');
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Авторизован! ID: $userId')),
-      );
+        ref.read(authProvider.notifier).setLoggedIn();
 
-      // Переход на "домашний" экран
-      Navigator.pushReplacementNamed(context, '/home', arguments: userId);
+        Navigator.of(context).pushNamedAndRemoveUntil('/home', (route) => false, arguments: userId);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Неверный код подтверждения'))
+        );
+      }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Ошибка: ${e.toString()}')),
@@ -98,3 +109,4 @@ class _ConfirmCodeScreenState extends State<ConfirmCodeScreen> {
     );
   }
 }
+

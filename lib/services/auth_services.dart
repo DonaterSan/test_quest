@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import '../storage/token_storage.dart';
+import 'dart:convert';
 
 class AuthService {
   final TokenStorage _storage = TokenStorage();
@@ -12,6 +13,31 @@ class AuthService {
       headers: {'Content-Type': 'application/json'},
     ),
   );
+
+  bool _isTokenValid(String token) {
+    try {
+      final payload = json.decode(
+        utf8.decode(base64Url.decode(base64Url.normalize(token.split('.')[1]))),
+      );
+      final exp = payload['exp'];
+      final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+      return exp != null && exp > now;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<bool> checkAuthStatus() async {
+  final accessToken = await _storage.getAccessToken();
+
+  if (accessToken != null && _isTokenValid(accessToken)) {
+    return true;
+  }
+
+  return false;
+}
+
+
 
   Future<void> sendEmail(String email) async {
     await _dio.post('/login', data: {'email': email});
